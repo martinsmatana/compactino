@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>COMPACTINO — Your tiny genius</title>
+<meta name="description" content="Compactino — a planned project for a minimalist, yet potentially powerful Swiss Army knife for the digital age.">
+
+<!-- Cabinet Grotesk (Fontshare) — to match our studio's sister site interactoons -->
+<link rel="preconnect" href="https://api.fontshare.com">
+<link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@200,400,500,700,800&display=swap" rel="stylesheet">
+
+<style>
+/* ============================================================
+   SONDA woff2 — A-Z, a-z, 1-8 only
+   ============================================================ */
+@font-face {
+  font-family: 'Sonda';
+  src: url('assets-fonts-woff2/SondaTrial-Black.woff2') format('woff2');
+  font-weight: 900;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Sonda';
+  src: url('assets-fonts-woff2/SondaTrial-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Sonda';
+  src: url('assets-fonts-woff2/SondaTrial-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-display: swap;
+}
+
+/* RESET */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: 'Cabinet Grotesk', -apple-system, system-ui, sans-serif;
+  font-weight: 400;
+  color: #0a0a0a;
+  background: #f6f4ee;
+  overflow-x: hidden;
+  cursor: none;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  font-size: 17px;
+}
+@media (max-width: 900px) { body { cursor: auto; } }
+a { color: inherit; text-decoration: none; }
+img { max-width: 100%; display: block; user-select: none; }
+button { font: inherit; }
+::selection { background: #ff6632; color: #fff; }
+
+/* CUSTOM CURSOR */
+.cursor, .cursor-dot {
+  position: fixed; top: 0; left: 0;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  will-change: transform;
+}
+.cursor {
+  width: 38px; height: 38px;
+  border: 1.5px solid #fff;
+  border-radius: 50%;
+  mix-blend-mode: difference;
+  transition: width 0.4s cubic-bezier(0.2, 0.8, 0.2, 1),
+              height 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.cursor.is-hover { width: 70px; height: 70px; }
+.cursor-dot {
+  width: 5px; height: 5px;
+  background: #fff;
+  border-radius: 50%;
+  mix-blend-mode: difference;
+}
+@media (max-width: 900px) { .cursor, .cursor-dot { display: none; } }
+
+/* SCROLL PROGRESS */
+.scroll-progress {
+  position: fixed; top: 0; left: 0;
+  width: 0%; height: 3px;
+  background: linear-gradient(90deg, #e2dc00, #5abc88, #ff6632, #ff9a6e, #f8b8d0, #7d95ff);
+  z-index: 1000;
+}
+
+/* DOTS NAV */
+.dots-nav {
+  position: fixed; right: 28px; top: 50%;
+  transform: translateY(-50%);
+  z-index: 100;
+  display: flex; flex-direction: column; gap: 12px;
+  mix-blend-mode: difference;
+}
+.dots-nav button {
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  border: 1.5px solid #fff;
+  background: transparent;
+  cursor: pointer; padding: 0;
+  transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.dots-nav button.active {
+  width: 32px; border-radius: 5px; background: #fff;
+}
+@media (max-width: 900px) { .dots-nav { display: none; } }
+
+/* ============================================================
+   SECTIONS — section-fg controls the ONE accent color per section
+   ============================================================ */
+section {
+  position: relative;
+  padding: 16vh 7vw;
+  z-index: 2;
+  background: var(--section-bg);
+  color: var(--section-text, #0a0a0a);
+}
+.hero          { --section-bg: #f6f4ee; --section-fg: #0a0a0a; --section-text: #0a0a0a; }
+.bg-white      { --section-bg: #ffffff; --section-text: #0a0a0a; }
+.bg-gray       { --section-bg: #d6d6d6; --section-text: #0a0a0a; }
+.bg-beige      { --section-bg: #e5cac7; --section-text: #0a0a0a; }
+.bg-lightgray1 { --section-bg: #f4f5f7; --section-text: #0a0a0a; }
+.bg-lightgray2 { --section-bg: #f2f0ee; --section-text: #0a0a0a; }
+.bg-lightgray3 { --section-bg: #f5f5f5; --section-text: #0a0a0a; }
+.bg-lightblue  { --section-bg: #e0e5f2; --section-text: #0a0a0a; }
+.bg-pink       { --section-bg: #fc98b2; --section-text: #2a0c14; }
+.bg-cyan       { --section-bg: #673ab7; --section-text: #f6f4ee; }
+.bg-purple     { --section-bg: #2a1b36; --section-text: #f6f4ee; }
+.bg-black      { --section-bg: #000000; --section-text: #f6f4ee; }
+
+/* ============================================================
+   DISPLAY HEADINGS — SONDA, lowercase, ONE color per section
+   FIX clipping: extra padding around .word + negative margin compensation
+   ============================================================ */
+.display {
+  font-family: 'Sonda', 'Cabinet Grotesk', sans-serif;
+  font-weight: 900;
+  font-size: clamp(46px, 9vw, 170px);
+  line-height: 1.05;
+  letter-spacing: 0.01em;     /* mierne kladné — bolo -0.025em → písmená sa dotýkali */
+  text-transform: lowercase;  /* lowercase, ako interactoons sister site */
+  margin: 0 0 8vh;
+  color: var(--section-fg);
+  overflow: visible;
+}
+.display .word {
+  display: inline-block;
+  vertical-align: top;
+  /* clipping fix — extra padding všade okolo na descendery a horizontálny overflow písmen */
+  padding: 0.1em 0.12em 0.22em 0.12em;
+  margin: -0.1em -0.12em -0.22em -0.12em;
+  overflow: hidden;
+  will-change: transform;
+}
+.display .word > span {
+  display: inline-block;
+  will-change: transform;
+}
+
+/* HERO subtitle — jednoduchá statická čierna malá SONDA jeden riadok */
+.hero-subtitle {
+  font-family: 'Sonda', sans-serif;
+  font-weight: 700;
+  font-size: clamp(13px, 1.5vw, 22px);
+  line-height: 1.3;
+  letter-spacing: 0.02em;
+  text-transform: lowercase;
+  color: #0a0a0a;
+  margin: 5vh auto 0;
+  text-align: center;
+  max-width: 90vw;
+}
+
+/* BODY TEXT */
+.body-large {
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: clamp(18px, 1.4vw, 24px);
+  font-weight: 400;
+  line-height: 1.55;
+  max-width: 70ch;
+  letter-spacing: -0.005em;
+}
+.body-large p { margin: 0 0 1.4em; }
+.body-large p:last-child { margin-bottom: 0; }
+/* HIGHLIGHT: bold + section accent color, NO font switch */
+.body-large strong, .body-large b {
+  font-weight: 700;
+  color: var(--section-fg);
+}
+
+/* hover-wiggle word (single, on "interactivity") */
+.hover-wiggle {
+  display: inline-block;
+  cursor: pointer;
+  transition: color 0.3s;
+  font-weight: 700;
+  color: var(--section-fg);
+}
+.hover-wiggle:hover { animation: wiggle 0.5s ease-in-out infinite; }
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0); }
+  20% { transform: rotate(-5deg) scale(1.05); }
+  60% { transform: rotate(5deg) scale(1.05); }
+}
+
+/* "loooong" stretch */
+.stretch { display: inline-block; }
+.stretch .o-stretch {
+  display: inline-block;
+  animation: oStretch 2.4s cubic-bezier(0.65, 0, 0.35, 1) infinite alternate;
+  transform-origin: center;
+}
+@keyframes oStretch {
+  0%   { transform: scaleX(1); }
+  100% { transform: scaleX(2.4); }
+}
+
+/* HERO */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 6vh 5vw 10vh;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.hero-stage {
+  width: 100%;
+  max-width: 1280px;
+  aspect-ratio: 700 / 130;
+  perspective: 1500px;
+  transform-style: preserve-3d;
+  position: relative;
+  margin: 0 auto;
+}
+.seg {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+.seg > svg, .face > svg {
+  width: 100%; height: 100%;
+  display: block;
+  overflow: visible;
+}
+.face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+}
+
+.scroll-hint {
+  position: absolute;
+  bottom: 3vh;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Sonda', sans-serif;
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  opacity: 0.7;
+}
+.scroll-hint::after {
+  content: "";
+  width: 1px; height: 36px;
+  background: currentColor;
+  animation: hint 2s ease-in-out infinite;
+  transform-origin: top;
+}
+@keyframes hint {
+  0%, 100% { transform: scaleY(0); }
+  50% { transform: scaleY(1); }
+}
+
+/* SECTION GRID */
+.section-grid {
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  gap: 6vw;
+  align-items: start;
+  margin-top: 4vh;
+}
+.section-grid.flip > :first-child { order: 2; }
+@media (max-width: 900px) {
+  .section-grid { grid-template-columns: 1fr; }
+  .section-grid.flip > :first-child { order: 0; }
+}
+
+/* GIF DIPTYCH (2 GIFs side by side) */
+.gif-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3vw;
+  align-items: start;
+}
+@media (max-width: 900px) { .gif-pair { grid-template-columns: 1fr; } }
+
+/* GIF wrappers — fix render artefakty (1-2px outline-y) jemným zoom-cropom */
+.gif-wrap {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  will-change: transform;
+}
+.gif-wrap img {
+  width: 100.6%;       /* mierne presahujeme okraj */
+  height: auto;
+  display: block;
+  margin-left: -0.3%;  /* centrované - vyrieši outline na okrajoch */
+}
+/* full-width plain GIF strip — bez zoom-cropu, bg matchuje */
+.gif-strip {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+.gif-strip img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* CARDS */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 3vw;
+  margin-top: 6vh;
+}
+@media (max-width: 900px) { .card-grid { grid-template-columns: 1fr; } }
+
+.card {
+  background: rgba(255, 255, 255, 0.65);
+  border: 2px solid currentColor;
+  padding: 5vh 3vw;
+  border-radius: 24px;
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+  will-change: transform;
+  transform-style: preserve-3d;
+}
+.bg-purple .card, .bg-black .card, .bg-cyan .card {
+  background: rgba(255,255,255, 0.05);
+  border-color: rgba(255,255,255, 0.65);
+}
+.card-label {
+  font-family: 'Sonda', 'Cabinet Grotesk', sans-serif;
+  font-weight: 800;
+  font-size: clamp(22px, 2.2vw, 36px);
+  text-transform: lowercase;
+  margin: 0 0 0.6em;
+  line-height: 1.0;
+  letter-spacing: 0.005em;
+  color: var(--section-fg);
+}
+.card-text {
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: clamp(15px, 1.15vw, 19px);
+  line-height: 1.55;
+}
+.card-text strong { font-weight: 700; color: var(--section-fg); }
+
+/* COUNTER 30-60 */
+.counter-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 12vh auto 0;
+  text-align: center;
+}
+.counter-display {
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-weight: 800;
+  font-size: clamp(110px, 20vw, 320px);
+  line-height: 0.85;
+  color: var(--section-fg);
+  letter-spacing: -0.05em;
+  margin: 0;
+}
+.counter-display .digit, .counter-display .dash {
+  display: inline-block;
+  will-change: transform;
+}
+.counter-display .dash {
+  margin: 0 0.18em;
+  font-weight: 400;
+}
+.counter-unit {
+  font-family: 'Sonda', 'Cabinet Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: clamp(13px, 1.2vw, 18px);
+  text-transform: lowercase;
+  letter-spacing: 0.3em;
+  margin-top: 5vh;
+  color: var(--section-text);
+}
+
+/* TAGS — only one accent color */
+.tag-row {
+  display: flex; flex-wrap: wrap; gap: 0.5em;
+  margin-top: 3vh;
+}
+.tag {
+  padding: 0.5em 1.1em;
+  background: var(--section-fg);
+  color: var(--section-bg);
+  font-family: 'Sonda', 'Cabinet Grotesk', sans-serif;
+  font-weight: 800;
+  font-size: clamp(12px, 0.95vw, 16px);
+  border-radius: 999px;
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+}
+
+/* CTA / SAY HELLO */
+.cta-final { text-align: center; padding-top: 18vh; }
+.cta-final .body-large { margin: 0 auto; text-align: center; }
+.contact-link {
+  display: inline-flex;
+  align-items: center; gap: 0.6em;
+  margin-top: 7vh;
+  padding: 1.1em 2.6em;
+  background: var(--section-fg);
+  color: var(--section-bg);
+  font-family: 'Sonda', 'Cabinet Grotesk', sans-serif;
+  font-weight: 800;
+  font-size: clamp(18px, 1.7vw, 28px);
+  text-transform: lowercase;
+  letter-spacing: 0.04em;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  border: 0;
+  text-decoration: none;
+}
+.contact-link:hover { transform: scale(1.06) rotate(-1.5deg); }
+
+/* MARQUEE — final brand flourish */
+.marquee {
+  overflow: hidden;
+  border-top: 2px solid #0a0a0a;
+  border-bottom: 2px solid #0a0a0a;
+  padding: 5vh 0;
+  background: #f6f4ee;
+}
+.marquee-track {
+  display: inline-flex;
+  gap: 4vw;
+  white-space: nowrap;
+  align-items: center;
+  animation: marqueeScroll 28s linear infinite;
+  will-change: transform;
+}
+.m-item {
+  font-family: 'Sonda', 'Cabinet Grotesk', sans-serif;
+  font-weight: 900;
+  font-size: clamp(60px, 11vw, 200px);
+  text-transform: lowercase;
+  letter-spacing: 0.005em;
+  line-height: 1;
+}
+.m-dot {
+  font-size: clamp(40px, 8vw, 140px);
+  line-height: 1;
+  color: #ff6632;
+}
+@keyframes marqueeScroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* FOOTER — coral bar like Interactoons sister site, but Compactino orange */
+.site-footer {
+  background: #ff6632;
+  color: #f6f4ee;
+  padding: 6vh 5vw;
+  text-align: center;
+}
+.footer-inner {
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-weight: 500;
+  font-size: clamp(12px, 1vw, 16px);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+/* SUBTLE SQUIGGLE filter on display headings — analog hand-drawn feel */
+.display { filter: url(#squiggle-h); }
+@media (prefers-reduced-motion: reduce) {
+  .display { filter: none; }
+}
+
+/* REVEAL */
+.reveal { opacity: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .reveal { opacity: 1; }
+}
+</style>
+</head>
+
+<body>
+
+<!-- SVG filter for analog squiggle on headings -->
+<svg width="0" height="0" style="position: absolute;" aria-hidden="true">
+  <defs>
+    <filter id="squiggle-h" x="-3%" y="-8%" width="106%" height="116%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.022 0.022" numOctaves="1" seed="2"/>
+      <feDisplacementMap in="SourceGraphic" scale="3"/>
+    </filter>
+  </defs>
+</svg>
+
+<div class="scroll-progress" id="scrollProgress"></div>
+<div class="cursor" id="cursor"></div>
+<div class="cursor-dot" id="cursorDot"></div>
+<nav class="dots-nav" id="dotsNav"></nav>
+
+<!-- ============================================================
+     HERO
+     ============================================================ -->
+<section class="hero" data-section data-name="Hero">
+  <div class="hero-stage" id="stage"></div>
+  <p class="hero-subtitle">Your tiny genius who packs big topics into modular bricks that click.</p>
+  <div class="scroll-hint">Scroll</div>
+</section>
+
+<!-- ============================================================
+     POCKET HELPER — white bg + 2 white GIFs
+     ============================================================ -->
+<section class="bg-white" style="--section-fg: #ff6632;" data-section data-name="Pocket Helper">
+  <h2 class="display reveal" data-split="words">pocket helper</h2>
+  <div class="section-grid">
+    <div class="body-col body-large reveal">
+      <p>Compactino is a <strong>planned project</strong> for a minimalist, yet potentially powerful <strong>Swiss Army knife</strong> for the digital age. Its vision is to become an innovative design portal and an <strong>Education-as-a-Service</strong> product that could change how the world learns about Artificial Intelligence. Its core motivation is the idea that <strong>no one should feel lost</strong>. The project's ambition is to show that we can <strong>fold the chaotic world</strong> we live in into one small, clear package.</p>
+    </div>
+    <div class="reveal">
+      <div class="gif-wrap" data-parallax="0.1">
+        <img src="assets/img/white%20bg/white%2001.gif" alt="" loading="lazy">
+      </div>
+    </div>
+  </div>
+  <div class="reveal" style="margin: 8vh auto 0; max-width: 720px;">
+    <div class="gif-wrap" data-parallax="0.06">
+      <img src="assets/img/white%20bg/white%2002.gif" alt="" loading="lazy">
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     TINY LESSONS — white bg + white 04 + white 05 (centered above counter)
+     ============================================================ -->
+<section class="bg-white" style="--section-fg: #7d95ff;" data-section data-name="Tiny Lessons">
+  <h2 class="display reveal" data-split="words">tiny lessons</h2>
+  <div class="section-grid flip">
+    <div class="body-col body-large reveal">
+      <p>The project tries to address the growing gap between rapid AI development and the skills of everyday people. The goal is to replace long, complex manuals with <strong>nano-lessons</strong> — short, <strong>30-60 second</strong> motion-design tutorials. The platform is conceived as a universal library of <strong>atomic workflows</strong>. Here, the word <strong>atomic</strong> refers to a vision of something tiny that has the potential to become a basic building block for a larger system. Each clip is being designed not just as a lesson, but as a modular system similar to <strong>Lego</strong>. The planned visual style intentionally avoids the <strong>cold</strong> look of technology; instead, it seeks to use <span class="hover-wiggle">interactivity</span> and haptic response to potentially help reduce the stress of learning something new.</p>
+    </div>
+    <div class="reveal">
+      <div class="gif-wrap" data-parallax="0.1">
+        <img src="assets/img/white%20bg/white%2004.gif" alt="" loading="lazy">
+      </div>
+    </div>
+  </div>
+
+  <div class="reveal" style="margin: 12vh auto 4vh; max-width: 600px;">
+    <div class="gif-wrap" data-parallax="0.06">
+      <img src="assets/img/white%20bg/white%2005.gif" alt="" loading="lazy">
+    </div>
+  </div>
+
+  <div class="counter-row reveal">
+    <div class="counter-display" id="counterDisplay">
+      <span class="digit" id="counter">0</span><span class="dash">–</span><span class="digit" id="counter2">0</span>
+    </div>
+    <div class="counter-unit">seconds per lesson</div>
+  </div>
+</section>
+
+<!-- ============================================================
+     THE LITTLE SQUARE — gray bg + 2 gray GIFs
+     ============================================================ -->
+<section class="bg-gray" style="--section-fg: #5abc88;" data-section data-name="The Little Square">
+  <h2 class="display reveal" data-split="words">the little square</h2>
+  <div class="body-large reveal" style="margin-bottom: 6vh;">
+    <p>The main guide should be a character — a <strong>small, calming square</strong> named Compactino. Its body is designed as a <strong>functional toolkit</strong> that can transform exactly as needed. Compactino should be able to <strong>slide, open, fold, or pack</strong>. In difficult moments, it can <strong>unfold</strong> to provide the user with a clear map of the terrain. This planned transformation aims to make the process easy to understand and tries to turn <strong>tech anxiety</strong> into a <strong>playful and safe</strong> routine.</p>
+  </div>
+
+  <div class="reveal" style="margin: 0 auto; max-width: 720px;">
+    <div class="gif-wrap" data-parallax="0.05">
+      <img src="assets/img/gray%20bg/gray%2001.gif" alt="Compactino character" loading="lazy">
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SMALL WINS — white bg + white 03 + white 06
+     ============================================================ -->
+<section class="bg-white" style="--section-fg: #ff9a6e;" data-section data-name="Small Wins">
+  <h2 class="display reveal" data-split="words">small wins</h2>
+  <div class="section-grid">
+    <div class="body-col body-large reveal">
+      <p>The proposed educational philosophy is based on the scientific principles of <strong>nano-learning</strong> and <strong>atomicity</strong>. These interactive, <strong>bite-sized</strong> lessons are conceived as a possible pedagogical choice that should respect the attention spans of seniors, children, and mobile users. The project wants to focus on a <strong>small wins</strong> strategy — <strong>little victories</strong> that a user could experience at every step. Each atomic module is designed to try and bring an immediate sense of success and help break down the <strong>mental barriers</strong> of difficult topics.</p>
+    </div>
+    <div class="reveal">
+      <div class="gif-wrap" data-parallax="0.12">
+        <img src="assets/img/white%20bg/white%2003.gif" alt="" loading="lazy">
+      </div>
+    </div>
+  </div>
+  <div class="reveal" style="margin: 8vh auto 0; max-width: 720px;">
+    <div class="gif-wrap" data-parallax="0.08">
+      <img src="assets/img/white%20bg/white%2006.gif" alt="" loading="lazy">
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     BUILDING BLOCKS — beige bg + beige GIF
+     ============================================================ -->
+<section class="bg-beige" style="--section-fg: #ff6632;" data-section data-name="Building Blocks">
+  <h2 class="display reveal" data-split="words">building blocks</h2>
+  <div class="section-grid flip">
+    <div class="body-col body-large reveal">
+      <p>The platform should not present AI as an isolated technology, but as a simple <strong>construction set</strong>. Compactino would play the role of a <strong>cognitive guide</strong>, showing through its transformations that even a potentially complex task can be <strong>broken down into small, manageable parts</strong>.</p>
+    </div>
+    <div class="reveal">
+      <div class="gif-wrap" data-parallax="0.1">
+        <img src="assets/img/beige%20bg/beige%20bg.gif" alt="" loading="lazy">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     WHO IT IS FOR — light gray 3 bg + 1 GIF + cards
+     ============================================================ -->
+<section class="bg-lightgray3" style="--section-fg: #ff6b01;" data-section data-name="Who It Is For">
+  <h2 class="display reveal" data-split="words">who it is for</h2>
+
+  <div class="card-grid">
+    <article class="card reveal" data-tilt-card>
+      <h3 class="card-label">primary learners</h3>
+      <p class="card-text">Children (6–12) and teenagers (13–18).</p>
+    </article>
+    <article class="card reveal" data-tilt-card>
+      <h3 class="card-label">adults and seniors</h3>
+      <p class="card-text">With a special focus on the 65+ group.</p>
+    </article>
+    <article class="card reveal" data-tilt-card>
+      <h3 class="card-label">secondary groups</h3>
+      <p class="card-text">Teachers, libraries, and parents looking for inclusive materials.</p>
+    </article>
+    <article class="card reveal" data-tilt-card>
+      <h3 class="card-label">b2b sector</h3>
+      <p class="card-text">Companies that might need <strong>ethical employee onboarding</strong> through planned <strong>Education Packs</strong>.</p>
+    </article>
+  </div>
+
+  <div class="reveal" style="margin-top: 8vh;">
+    <div class="gif-wrap" data-parallax="0.08">
+      <img src="assets/img/light%20gray%203%20bg/light%20gray%203%20bg.gif" alt="" loading="lazy">
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     EUROPEAN ROOTS — purple bg
+     ============================================================ -->
+<section class="bg-purple" style="--section-fg: #e2dc00;" data-section data-name="European Roots">
+  <h2 class="display reveal" data-split="words">european roots</h2>
+
+  <div class="section-grid">
+    <div class="body-col body-large reveal">
+      <p>Compactino is conceived on <strong>European-first</strong> foundations. Our key planned difference is <strong>Compliance-by-design</strong> — an effort to be in <strong>harmony with regulations</strong> from the very first draft.</p>
+    </div>
+    <div class="reveal">
+      <div class="gif-wrap" data-parallax="0.1">
+        <img src="assets/img/purple%20bg/purple%20bg.gif" alt="" loading="lazy">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     PLAYING FAIR — cyan/dark purple bg
+     ============================================================ -->
+<section class="bg-cyan" style="--section-fg: #f8b8d0;" data-section data-name="Playing Fair">
+  <h2 class="display reveal" data-split="words">playing fair</h2>
+
+  <div class="section-grid">
+    <div class="body-col body-large reveal">
+      <p>We intend to implement Articles <strong>4</strong> and <strong>5</strong> of the <strong>EU AI Act</strong>. The project seeks to respect <strong>GDPR-K</strong>, <strong>DSA</strong>, and <strong>UNICEF</strong> guidelines.</p>
+      <div class="tag-row">
+        <span class="tag">ai act</span>
+        <span class="tag">gdpr-k</span>
+        <span class="tag">dsa</span>
+        <span class="tag">unicef</span>
+      </div>
+    </div>
+    <div class="reveal">
+      <div class="gif-wrap" data-parallax="0.1">
+        <img src="assets/img/cyan/cyan.gif" alt="" loading="lazy">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     PURE AND SIMPLE — pink bg
+     ============================================================ -->
+<section class="bg-pink" style="--section-fg: #2c1f39;" data-section data-name="Pure and Simple">
+  <h2 class="display reveal" data-split="words">pure and simple</h2>
+
+  <div class="section-grid flip">
+    <div class="body-col body-large reveal">
+      <p>Unlike other alternatives, the project's goal is to <strong>protect user privacy</strong> and serve the public interest <strong>without the pressure of ads</strong>.</p>
+    </div>
+    <div class="reveal">
+      <div class="gif-wrap" data-parallax="0.1">
+        <img src="assets/img/pink%20bg/pink%20bg.gif" alt="" loading="lazy">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     LOOKING AHEAD — light gray 2 bg
+     ============================================================ -->
+<section class="bg-lightgray2" style="--section-fg: #5abc88;" data-section data-name="Looking Ahead">
+  <h2 class="display reveal" data-split="words">looking ahead</h2>
+  <div class="section-grid">
+    <div class="body-col body-large reveal">
+      <p>The intent of the project is to try and establish Compactino as a possible partner for <strong>public institutions</strong>. The future roadmap counts on synergy with <strong>EU priorities for 2026</strong>, where Compactino could act as a tool for <strong>AI literacy</strong>. The plan is to try and scale through <strong>EIC schemes</strong> and potentially turn this digital product into a <strong>deep-tech ecosystem</strong>.</p>
+    </div>
+    <div class="reveal">
+      <div class="gif-wrap" data-parallax="0.1">
+        <img src="assets/img/light%20gray%202%20bg/light%20gray%202%20bg.gif" alt="" loading="lazy">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     LIGHT GRAY 4 STRIP — full-width, žiadny text, len GIF
+     ============================================================ -->
+<section style="background: #f5f5f5; padding: 0;" data-section data-name="Pause">
+  <div class="gif-strip reveal">
+    <img src="assets/img/light%20gray%204/light%20gray%204.gif" alt="" loading="lazy">
+  </div>
+</section>
+
+<!-- ============================================================
+     FROM APP TO SCIENCE — light blue bg + light gray 1 (mood)
+     ============================================================ -->
+<section class="bg-lightblue" style="--section-fg: #ff6632;" data-section data-name="From App to Science">
+  <h2 class="display reveal" data-split="words">from app to science</h2>
+  <div class="section-grid flip">
+    <div class="body-col body-large reveal">
+      <p>In the early years, we think of Compactino as an interactive app with the potential to grow into a <strong>scientific innovation</strong>. In planned cooperation with universities, we would like to study the effect of <strong>nano-lessons</strong> on <strong>long-term memory</strong> and try to measure a possible decrease in <strong>tech anxiety</strong>.</p>
+    </div>
+    <div class="reveal">
+      <div class="gif-wrap" data-parallax="0.1">
+        <img src="assets/img/light%20blue%20bg/light%20blue%20bg.gif" alt="" loading="lazy">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SMALL STEPS BIG RELIEF — light gray 1 bg
+     ============================================================ -->
+<section class="bg-lightgray1" style="--section-fg: #f8b8d0;" data-section data-name="Small Steps Big Relief">
+  <h2 class="display reveal" data-split="words">small steps big relief</h2>
+  <div class="section-grid">
+    <div class="body-col body-large reveal">
+      <p>We believe that if we try to turn technology into a <strong>playful tool</strong> with <strong>zero pressure</strong>, we might overcome the current challenges. Our goal is to bring <strong>small steps for big relief</strong> and trust built through a <strong>predictable ritual</strong>. We hope that even the most complex systems can perhaps be explained with <strong>humanity and simplicity</strong>.</p>
+    </div>
+    <div class="reveal">
+      <div class="gif-wrap" data-parallax="0.08">
+        <img src="assets/img/light%20gray%201%20bg/light%20gray%201%20bg.gif" alt="" loading="lazy">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SAY HELLO — black bg, black 02 above, black 01 below email
+     ============================================================ -->
+<section class="bg-black cta-final" style="--section-fg: #ff9a6e;" data-section data-name="Say Hello">
+  <div class="reveal" style="margin: 0 auto 8vh; max-width: 520px;">
+    <div class="gif-wrap" data-parallax="0.05">
+      <img src="assets/img/black%20bg/black%2002.gif" alt="" loading="lazy">
+    </div>
+  </div>
+
+  <h2 class="display reveal" data-split="words">say hello</h2>
+  <div class="body-large reveal" style="font-size: clamp(20px, 2.2vw, 36px); margin-bottom: 3vh; max-width: 24ch; text-align: center;">
+    <p>If our tiny bricks sparked a big idea, let's see if we click.</p>
+  </div>
+  <div class="body-large reveal" style="margin: 0 auto;">
+    <p>Compactino is currently just a <strong>single module</strong>, and we are looking for the hands that will help us build the <strong>next layer</strong>. The warmest part of starting small is meeting the people who'll help <strong>stack this vision</strong> into something big. Whether you're a parent, a teacher, a researcher, or a fellow studio — drop us a line.</p>
+  </div>
+  <a class="contact-link reveal" href="mailto:hello@smatana.com">hello@smatana.com</a>
+
+  <div class="reveal" style="margin: 12vh auto 0; max-width: 520px;">
+    <div class="gif-wrap" data-parallax="0.08">
+      <img src="assets/img/black%20bg/black%2001.gif" alt="" loading="lazy">
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     FOOTER — copyright bar (inšpirácia Interactoons sister site)
+     ============================================================ -->
+<footer class="site-footer">
+  <div class="footer-inner">© 2026 smatana · compactino</div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.1.20/dist/lenis.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
+<script>
+'use strict';
+gsap.registerPlugin(ScrollTrigger);
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// LENIS
+let lenis;
+if (!reduceMotion && window.innerWidth > 900) {
+  lenis = new Lenis({
+    duration: 1.1,
+    easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+    smoothWheel: true
+  });
+  lenis.on('scroll', ScrollTrigger.update);
+  gsap.ticker.add((time) => { lenis.raf(time * 1000); });
+  gsap.ticker.lagSmoothing(0);
+}
+
+// CUSTOM CURSOR
+const cursor = document.getElementById('cursor');
+const cursorDot = document.getElementById('cursorDot');
+let mouseX = 0, mouseY = 0, cursorX = 0, cursorY = 0;
+window.addEventListener('mousemove', (e) => {
+  mouseX = e.clientX; mouseY = e.clientY;
+  gsap.to(cursorDot, { x: mouseX, y: mouseY, duration: 0.05 });
+});
+(function animateCursor() {
+  cursorX += (mouseX - cursorX) * 0.18;
+  cursorY += (mouseY - cursorY) * 0.18;
+  if (cursor) cursor.style.transform = `translate(${cursorX}px, ${cursorY}px) translate(-50%, -50%)`;
+  requestAnimationFrame(animateCursor);
+})();
+document.querySelectorAll('a, button, .hover-wiggle').forEach(el => {
+  el.addEventListener('mouseenter', () => cursor.classList.add('is-hover'));
+  el.addEventListener('mouseleave', () => cursor.classList.remove('is-hover'));
+});
+
+// SCROLL PROGRESS
+const progressBar = document.getElementById('scrollProgress');
+ScrollTrigger.create({
+  start: 0, end: 'max',
+  onUpdate: self => { progressBar.style.width = (self.progress * 100) + '%'; }
+});
+
+// SECTION DOTS + body bg transitions per section
+const sections = document.querySelectorAll('[data-section]');
+const dotsNav = document.getElementById('dotsNav');
+sections.forEach((sec) => {
+  const btn = document.createElement('button');
+  btn.title = sec.dataset.name;
+  btn.addEventListener('click', () => {
+    const y = sec.getBoundingClientRect().top + window.scrollY;
+    if (lenis) lenis.scrollTo(y, { duration: 1.4 });
+    else window.scrollTo({ top: y, behavior: 'smooth' });
+  });
+  dotsNav.appendChild(btn);
+});
+const dots = dotsNav.querySelectorAll('button');
+sections.forEach((sec, i) => {
+  ScrollTrigger.create({
+    trigger: sec, start: 'top 50%', end: 'bottom 50%',
+    onEnter: () => dots.forEach((d, j) => d.classList.toggle('active', j === i)),
+    onEnterBack: () => dots.forEach((d, j) => d.classList.toggle('active', j === i))
+  });
+});
+
+// SPLIT TEXT (words)
+function splitWords(el) {
+  const html = el.innerHTML;
+  const lines = html.split(/<br\s*\/?>/i);
+  el.innerHTML = '';
+  lines.forEach((line, lineIdx) => {
+    if (lineIdx > 0) el.appendChild(document.createElement('br'));
+    line.trim().split(/\s+/).forEach(word => {
+      if (!word) return;
+      const w = document.createElement('span');
+      w.className = 'word';
+      const inner = document.createElement('span');
+      inner.textContent = word;
+      w.appendChild(inner);
+      el.appendChild(w);
+      el.appendChild(document.createTextNode(' '));
+    });
+  });
+}
+document.querySelectorAll('[data-split="words"]').forEach(el => splitWords(el));
+
+// REVEAL animations
+sections.forEach(sec => {
+  sec.querySelectorAll('.reveal').forEach(el => {
+    const words = el.querySelectorAll('.word > span');
+    if (words.length) {
+      gsap.set(words, { yPercent: 110 });
+      gsap.set(el, { opacity: 1 });
+      ScrollTrigger.create({
+        trigger: el, start: 'top 85%', once: true,
+        onEnter: () => gsap.to(words, { yPercent: 0, duration: 1.0, ease: 'power3.out', stagger: 0.04 })
+      });
+    } else {
+      gsap.set(el, { opacity: 0, y: 60 });
+      ScrollTrigger.create({
+        trigger: el, start: 'top 88%', once: true,
+        onEnter: () => gsap.to(el, { opacity: 1, y: 0, duration: 1.1, ease: 'power3.out' })
+      });
+    }
+  });
+});
+
+// 3D TILT cards
+document.querySelectorAll('[data-tilt-card]').forEach(el => {
+  el.addEventListener('mousemove', (e) => {
+    const r = el.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width - 0.5;
+    const y = (e.clientY - r.top) / r.height - 0.5;
+    gsap.to(el, { rotationY: x * 8, rotationX: -y * 8, duration: 0.5, ease: 'power2.out', transformPerspective: 1200 });
+  });
+  el.addEventListener('mouseleave', () => {
+    gsap.to(el, { rotationY: 0, rotationX: 0, duration: 0.8, ease: 'power3.out' });
+  });
+});
+
+// MAGNETIC EMAIL BUTTON + CONFETTI on click
+const contactBtn = document.querySelector('.contact-link');
+if (contactBtn) {
+  const MAG_RADIUS = 180;
+  contactBtn.addEventListener('mousemove', (e) => {
+    const r = contactBtn.getBoundingClientRect();
+    const cx = r.left + r.width / 2;
+    const cy = r.top + r.height / 2;
+    const dx = e.clientX - cx;
+    const dy = e.clientY - cy;
+    const dist = Math.hypot(dx, dy);
+    if (dist < MAG_RADIUS) {
+      const f = (1 - dist / MAG_RADIUS) * 0.35;
+      gsap.to(contactBtn, { x: dx * f, y: dy * f, duration: 0.4, ease: 'power3.out' });
+    }
+  });
+  contactBtn.addEventListener('mouseleave', () => {
+    gsap.to(contactBtn, { x: 0, y: 0, duration: 0.6, ease: 'elastic.out(1, 0.45)' });
+  });
+  contactBtn.addEventListener('click', (e) => {
+    if (window.confetti) {
+      const r = contactBtn.getBoundingClientRect();
+      window.confetti({
+        particleCount: 90,
+        spread: 75,
+        startVelocity: 45,
+        origin: {
+          x: (r.left + r.width/2) / window.innerWidth,
+          y: (r.top + r.height/2) / window.innerHeight
+        },
+        colors: ['#7d95ff','#e2dc00','#5abc88','#ff6632','#ff9a6e','#f8b8d0']
+      });
+    }
+  });
+}
+
+// PARALLAX
+document.querySelectorAll('[data-parallax]').forEach(el => {
+  const speed = parseFloat(el.dataset.parallax);
+  gsap.to(el, {
+    yPercent: speed * -22,
+    ease: 'none',
+    scrollTrigger: { trigger: el, start: 'top bottom', end: 'bottom top', scrub: 1 }
+  });
+});
+
+// COUNTER — scrub-tied to scroll, roluje sa AŽ pri odhalení
+const c1 = document.getElementById('counter');
+const c2 = document.getElementById('counter2');
+if (c1 && c2) {
+  c1.textContent = '0'; c2.textContent = '0';
+  ScrollTrigger.create({
+    trigger: c1.closest('.counter-row'),
+    start: 'top 90%',     // začne keď top counterá vstúpi do dolných 10% viewportu
+    end: 'top 35%',       // končí keď top je v hornej tretine
+    scrub: 1.2,
+    onUpdate: self => {
+      const p = self.progress;
+      c1.textContent = Math.round(30 * p);
+      c2.textContent = Math.round(60 * p);
+    }
+  });
+  // Gentle rotation oscillation
+  gsap.to('#counter', { rotation: -3, duration: 2.5, repeat: -1, yoyo: true, ease: 'sine.inOut', transformOrigin: '50% 100%' });
+  gsap.to('#counter2', { rotation: 3, duration: 2.8, repeat: -1, yoyo: true, ease: 'sine.inOut', transformOrigin: '50% 100%' });
+  gsap.to('.counter-display .dash', { rotation: 8, duration: 1.6, repeat: -1, yoyo: true, ease: 'sine.inOut', transformOrigin: '50% 50%' });
+}
+
+// ============================================================
+// COMPACTINO HERO ANIMATION (faster + bigger overlap)
+// ============================================================
+const STAGE_W = 700, STAGE_H = 130;
+const PIECES = [
+  { id:'c1_tl', letter:0, fill:'#e2dc00', shape:{ type:'path', d:'M24.66,64.92H4.66c0-16.54,13.46-30,30-30v20c-5.51,0-10,4.49-10,10Z' }, predecessor:null },
+  { id:'c1_bl', letter:0, fill:'#5abc88', shape:{ type:'path', d:'M24.66,64.92H4.66c0,16.54,13.46,30,30,30v-20c-5.51,0-10-4.49-10-10Z' }, predecessor:'c1_tl', axis:'x', axisCoord:64.92, foldRotation:{ rotationX:180 } },
+  { id:'o1_tl', letter:1, fill:'#e2dc00', shape:{ type:'path', d:'M74.66,64.92h-20c0-16.54,13.46-30,30-30v20c-5.51,0-10,4.49-10,10Z' }, predecessor:null },
+  { id:'o1_tr', letter:1, fill:'#ff6632', shape:{ type:'path', d:'M94.66,64.92h20c0-16.54-13.46-30-30-30v20c5.51,0,10,4.49,10,10Z' }, predecessor:'o1_tl', axis:'y', axisCoord:84.66, foldRotation:{ rotationY:-180 } },
+  { id:'o1_br', letter:1, fill:'#ff9a6e', shape:{ type:'path', d:'M94.66,64.92h20c0,16.54-13.46,30-30,30v-20c5.51,0,10-4.49,10-10Z' }, predecessor:'o1_tr', axis:'x', axisCoord:64.92, foldRotation:{ rotationX:180 } },
+  { id:'o1_bl', letter:1, fill:'#7d95ff', shape:{ type:'path', d:'M74.66,64.92h-20c0,16.54,13.46,30,30,30v-20c-5.51,0-10-4.49-10-10Z' }, predecessor:'o1_br', axis:'y', axisCoord:84.66, foldRotation:{ rotationY:180 } },
+  { id:'m_left', letter:2, fill:'#5abc88', shape:{ type:'rect', x:134.66, y:64.92, w:20, h:30 }, predecessor:null },
+  { id:'m_tl', letter:2, fill:'#ff874a', shape:{ type:'path', d:'M154.66,64.92h-20c0-16.54,13.46-30,30-30v20c-5.51,0-10,4.49-10,10Z' }, predecessor:'m_left', axis:'x', axisCoord:64.92, foldRotation:{ rotationX:-180 } },
+  { id:'m_tr', letter:2, fill:'#7d95ff', shape:{ type:'path', d:'M174.66,64.92h20c0-16.54-13.46-30-30-30v20c5.51,0,10,4.49,10,10Z' }, predecessor:'m_tl', axis:'y', axisCoord:164.66, foldRotation:{ rotationY:-180 } },
+  { id:'m_right', letter:2, fill:'#ff6632', shape:{ type:'rect', x:174.66, y:64.92, w:20, h:30 }, predecessor:'m_tr', axis:'x', axisCoord:64.92, foldRotation:{ rotationX:180 } },
+  { id:'p_tl', letter:3, fill:'#f8b8d0', shape:{ type:'path', d:'M194.66,64.92h-20c0-16.54,13.46-30,30-30v20c-5.51,0-10,4.49-10,10Z' }, predecessor:null },
+  { id:'p_tr', letter:3, fill:'#e2dc00', shape:{ type:'path', d:'M214.66,64.92h20c0-16.54-13.46-30-30-30v20c5.51,0,10,4.49,10,10Z' }, predecessor:'p_tl', axis:'y', axisCoord:204.66, foldRotation:{ rotationY:-180 } },
+  { id:'p_right', letter:3, fill:'#7d95ff', shape:{ type:'rect', x:214.66, y:64.92, w:20, h:30 }, predecessor:'p_tr', axis:'x', axisCoord:64.92, foldRotation:{ rotationX:180 } },
+  { id:'a_mid', letter:4, fill:'#f8b8d0', shape:{ type:'rect', x:254.66, y:64.92, w:20, h:30 }, predecessor:null },
+  { id:'a_top', letter:4, fill:'#7d95ff', shape:{ type:'rect', x:254.66, y:34.92, w:20, h:30 }, predecessor:'a_mid', axis:'x', axisCoord:64.92, foldRotation:{ rotationX:-180 } },
+  { id:'a_tr', letter:4, fill:'#5abc88', shape:{ type:'path', d:'M284.66,64.92h20c0-16.54-13.46-30-30-30v20c5.51,0,10,4.49,10,10Z' }, predecessor:'a_top', axis:'y', axisCoord:274.66, foldRotation:{ rotationY:-180 } },
+  { id:'a_br', letter:4, fill:'#e2dc00', shape:{ type:'path', d:'M284.66,64.92h20c0,16.54-13.46,30-30,30v-20c5.51,0,10-4.49,10-10Z' }, predecessor:'a_tr', axis:'x', axisCoord:64.92, foldRotation:{ rotationX:180 } },
+  { id:'a_bot', letter:4, fill:'#ff6632', shape:{ type:'rect', x:254.66, y:94.92, w:20, h:30 }, predecessor:'a_mid', axis:'x', axisCoord:94.92, foldRotation:{ rotationX:180 } },
+  { id:'c2_left', letter:5, fill:'#7d95ff', shape:{ type:'rect', x:324.66, y:64.92, w:20, h:30 }, predecessor:null },
+  { id:'c2_tl', letter:5, fill:'#ff874a', shape:{ type:'path', d:'M344.66,64.92h-20c0-16.54,13.46-30,30-30v20c-5.51,0-10,4.49-10,10Z' }, predecessor:'c2_left', axis:'x', axisCoord:64.92, foldRotation:{ rotationX:-180 } },
+  { id:'c2_tr', letter:5, fill:'#5abc88', shape:{ type:'path', d:'M364.66,64.92h20c0-16.54-13.46-30-30-30v20c5.51,0,10,4.49,10,10Z' }, predecessor:'c2_tl', axis:'y', axisCoord:354.66, foldRotation:{ rotationY:-180 } },
+  { id:'c2_right', letter:5, fill:'#e2dc00', shape:{ type:'rect', x:364.66, y:64.92, w:20, h:30 }, predecessor:'c2_tr', axis:'x', axisCoord:64.92, foldRotation:{ rotationX:180 } },
+  { id:'c2_small', letter:5, fill:'#ff9a6e', shape:{ type:'path', d:'M354.66,64.92h10c0,5.49-4.51,10-10,10s-10-4.51-10-10h10Z' }, predecessor:'c2_left', axis:'y', axisCoord:344.66, foldRotation:{ rotationY:-180 } },
+  { id:'t_stem', letter:6, fill:'#f8b8d0', shape:{ type:'rect', x:464.66, y:54.92, w:20, h:40 }, predecessor:null },
+  { id:'t_cap', letter:6, fill:'#e2dc00', shape:{ type:'rect', x:464.66, y:24.92, w:20, h:40, transform:'translate(429.74 519.58) rotate(-90)' }, predecessor:'t_stem', axis:'x', axisCoord:54.92, foldRotation:{ rotationX:-180 } },
+  { id:'t_ring_tl', letter:6, fill:'#ff6632', shape:{ type:'path', d:'M424.66,64.92h-20c0-16.54,13.46-30,30-30v20c-5.51,0-10,4.49-10,10Z' }, predecessor:null },
+  { id:'t_ring_bl', letter:6, fill:'#ff9a6e', shape:{ type:'path', d:'M424.66,64.92h-20c0,16.54,13.46,30,30,30v-20c-5.51,0-10-4.49-10-10Z' }, predecessor:'t_ring_tl', axis:'x', axisCoord:64.92, foldRotation:{ rotationX:180 } },
+  { id:'i_stem', letter:7, fill:'#7d95ff', shape:{ type:'rect', x:514.66, y:34.92, w:20, h:60 }, predecessor:null },
+  { id:'i_dot', letter:7, fill:'#ff6b01', shape:{ type:'circle', cx:524.66, cy:14.92, r:10 }, predecessor:null },
+  { id:'n_left', letter:8, fill:'#ff874a', shape:{ type:'rect', x:554.66, y:64.92, w:20, h:30 }, predecessor:null },
+  { id:'n_tl', letter:8, fill:'#7d95ff', shape:{ type:'path', d:'M574.66,64.92h-20c0-16.54,13.46-30,30-30v20c-5.51,0-10,4.49-10,10Z' }, predecessor:'n_left', axis:'x', axisCoord:64.92, foldRotation:{ rotationX:-180 } },
+  { id:'n_tr', letter:8, fill:'#e2dc00', shape:{ type:'path', d:'M594.66,64.92h20c0-16.54-13.46-30-30-30v20c5.51,0,10,4.49,10,10Z' }, predecessor:'n_tl', axis:'y', axisCoord:584.66, foldRotation:{ rotationY:-180 } },
+  { id:'n_right', letter:8, fill:'#ff6b01', shape:{ type:'rect', x:594.66, y:64.92, w:20, h:30 }, predecessor:'n_tr', axis:'x', axisCoord:64.92, foldRotation:{ rotationX:180 } },
+  { id:'o2_tl', letter:9, fill:'#f8b8d0', shape:{ type:'path', d:'M654.66,64.92h-20c0-16.54,13.46-30,30-30v20c-5.51,0-10,4.49-10,10Z' }, predecessor:null },
+  { id:'o2_tr', letter:9, fill:'#ff874a', shape:{ type:'path', d:'M674.66,64.92h20c0-16.54-13.46-30-30-30v20c5.51,0,10,4.49,10,10Z' }, predecessor:'o2_tl', axis:'y', axisCoord:664.66, foldRotation:{ rotationY:-180 } },
+  { id:'o2_br', letter:9, fill:'#5abc88', shape:{ type:'path', d:'M674.66,64.92h20c0,16.54-13.46,30-30,30v-20c5.51,0,10-4.49,10-10Z' }, predecessor:'o2_tr', axis:'x', axisCoord:64.92, foldRotation:{ rotationX:180 } },
+  { id:'o2_bl', letter:9, fill:'#7d95ff', shape:{ type:'path', d:'M654.66,64.92h-20c0,16.54,13.46,30,30,30v-20c-5.51,0-10-4.49-10-10Z' }, predecessor:'o2_br', axis:'y', axisCoord:664.66, foldRotation:{ rotationY:180 } },
+];
+const PIECE_BY_ID = {};
+PIECES.forEach(p => PIECE_BY_ID[p.id] = p);
+
+function shapeMarkup(shape, fill) {
+  if (shape.type === 'path') return `<path fill="${fill}" d="${shape.d}"/>`;
+  if (shape.type === 'rect') {
+    const t = shape.transform ? ` transform="${shape.transform}"` : '';
+    return `<rect fill="${fill}" x="${shape.x}" y="${shape.y}" width="${shape.w}" height="${shape.h}"${t}/>`;
+  }
+  if (shape.type === 'circle') return `<circle fill="${fill}" cx="${shape.cx}" cy="${shape.cy}" r="${shape.r}"/>`;
+  return '';
+}
+function fullSVG(shape, fill) {
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${STAGE_W} ${STAGE_H}">${shapeMarkup(shape, fill)}</svg>`;
+}
+const stage = document.getElementById('stage');
+PIECES.forEach(piece => {
+  const seg = document.createElement('div');
+  seg.className = 'seg';
+  seg.id = piece.id;
+  if (piece.predecessor) {
+    const pred = PIECE_BY_ID[piece.predecessor];
+    const front = document.createElement('div');
+    front.className = 'face front';
+    front.innerHTML = fullSVG(piece.shape, piece.fill);
+    seg.appendChild(front);
+    const back = document.createElement('div');
+    back.className = 'face back';
+    back.innerHTML = fullSVG(pred.shape, pred.fill);
+    seg.appendChild(back);
+  } else {
+    seg.innerHTML = fullSVG(piece.shape, piece.fill);
+  }
+  stage.appendChild(seg);
+});
+
+function originFor(piece) {
+  if (piece.axis === 'y') return `${(piece.axisCoord / STAGE_W * 100)}% 50%`;
+  return `50% ${(piece.axisCoord / STAGE_H * 100)}%`;
+}
+PIECES.forEach(piece => {
+  const el = document.getElementById(piece.id);
+  if (!piece.predecessor) {
+    gsap.set(el, { autoAlpha: 0 });
+    return;
+  }
+  const origin = originFor(piece);
+  gsap.set(el, { transformOrigin: origin, ...piece.foldRotation, autoAlpha: 0 });
+  const back = el.querySelector('.face.back');
+  if (back) {
+    const backRot = piece.axis === 'y' ? { rotationY: 180 } : { rotationX: 180 };
+    gsap.set(back, { transformOrigin: origin, ...backRot });
+  }
+});
+
+function buildHeroTimeline() {
+  const INITIAL_DELAY = 0.4;
+  const FADE_DUR = 0.3;
+  const PIECE_DUR = 0.55;
+  const PIECE_OVERLAP = 0.15;
+  const tl = gsap.timeline({
+    defaults: { duration: PIECE_DUR, ease: "power3.inOut" },
+    delay: INITIAL_DELAY
+  });
+  const byLetter = {};
+  PIECES.forEach(p => { if (!byLetter[p.letter]) byLetter[p.letter] = []; byLetter[p.letter].push(p); });
+  let letterStart = 0;
+  Object.keys(byLetter).sort((a,b)=>+a-+b).forEach((letterIdx) => {
+    const pieces = byLetter[letterIdx];
+    let cursor = letterStart;
+    let lastEnd = letterStart;
+    pieces.forEach(piece => {
+      const sel = `#${piece.id}`;
+      if (!piece.predecessor) {
+        tl.to(sel, { autoAlpha: 1, duration: FADE_DUR, ease: "power2.out" }, cursor);
+        lastEnd = Math.max(lastEnd, cursor + FADE_DUR);
+        cursor += FADE_DUR;
+      } else {
+        tl.set(sel, { autoAlpha: 1 }, cursor);
+        const target = piece.axis === 'y' ? { rotationY: 0 } : { rotationX: 0 };
+        tl.to(sel, target, cursor);
+        lastEnd = Math.max(lastEnd, cursor + PIECE_DUR);
+        cursor += PIECE_DUR - PIECE_OVERLAP;
+      }
+    });
+    letterStart += (lastEnd - letterStart) / 3;
+  });
+  return tl;
+}
+if (reduceMotion) {
+  PIECES.forEach(p => gsap.set(`#${p.id}`, { autoAlpha: 1, rotationX: 0, rotationY: 0 }));
+} else {
+  buildHeroTimeline();
+}
+
+// ============================================================
+// PHYSICS SCATTER (cursor pushes, spring + damping pulls back)
+// inspired by 07-particles.html / 08-ascii-grid.html
+// ============================================================
+function setupPhysics() {
+  const physData = PIECES.map(piece => {
+    const el = document.getElementById(piece.id);
+    const child = el.querySelector('path, rect, circle');
+    let cx, cy;
+    if (child && child.getBBox) {
+      try {
+        const bb = child.getBBox();
+        cx = bb.x + bb.width / 2;
+        cy = bb.y + bb.height / 2;
+      } catch (e) {}
+    }
+    return {
+      el, cx, cy,
+      x: 0, y: 0, vx: 0, vy: 0,
+      xSet: gsap.quickSetter(el, 'x', 'px'),
+      ySet: gsap.quickSetter(el, 'y', 'px')
+    };
+  });
+
+  const mouse = { sx: -9999, sy: -9999, active: false };
+  stage.addEventListener('mousemove', (e) => {
+    const rect = stage.getBoundingClientRect();
+    mouse.sx = (e.clientX - rect.left) / rect.width * STAGE_W;
+    mouse.sy = (e.clientY - rect.top) / rect.height * STAGE_H;
+    mouse.active = true;
+  });
+  stage.addEventListener('mouseleave', () => { mouse.active = false; });
+
+  const SPRING = 0.025, DAMP = 0.86, REPEL_R_SVG = 26, REPEL_STR = 1.6;
+
+  function tick() {
+    if (!stage.isConnected) return;
+    const rect = stage.getBoundingClientRect();
+    const pxScale = rect.width / STAGE_W;
+    for (const p of physData) {
+      if (p.cx === undefined) continue;
+      p.vx += (-p.x) * SPRING;
+      p.vy += (-p.y) * SPRING;
+      if (mouse.active) {
+        const psx = p.cx + p.x / pxScale;
+        const psy = p.cy + p.y / pxScale;
+        const dx = psx - mouse.sx;
+        const dy = psy - mouse.sy;
+        const dist2 = dx*dx + dy*dy;
+        if (dist2 < REPEL_R_SVG * REPEL_R_SVG) {
+          const dist = Math.sqrt(dist2) || 1;
+          const f = (1 - dist / REPEL_R_SVG) * REPEL_STR;
+          p.vx += (dx / dist) * f * pxScale;
+          p.vy += (dy / dist) * f * pxScale;
+        }
+      }
+      p.vx *= DAMP; p.vy *= DAMP;
+      p.x += p.vx; p.y += p.vy;
+      p.xSet(p.x); p.ySet(p.y);
+    }
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(() => requestAnimationFrame(setupPhysics));
+
+if (document.fonts && document.fonts.ready) {
+  document.fonts.ready.then(() => ScrollTrigger.refresh());
+}
+window.addEventListener('load', () => ScrollTrigger.refresh());
+</script>
+</body>
+</html>
